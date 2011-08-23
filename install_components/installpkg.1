@@ -1,0 +1,56 @@
+.\" Process this file with
+.\" groff -Tascii -man /path/tosource/addtodock.1 > outputfile.1
+.\"
+.TH INSTALLPKG 1 "18 December 2009"
+.SH NAME
+installpkg - allows quick installation of multiple packages.
+.SH SYNOPSIS
+installpkg <package1.pkg> [package2.pkg]...etc
+.SH DESCRIPTION
+.B
+INSTALLPKG
+attempts to install packages passed in as argument(s) 
+If the items file name ends in .pkg or .mpkg installation will be attempted.
+
+It is also possible to use the -i flag to install all the packages in
+root level of a .dmg file.
+
+Usage Examples :
+
+   installpkg package1.pkg package2.pkg
+
+   installpkg /directory_full_of_pacakges/*
+
+   installpkg -i image1.dmg image2.dmg
+
+   installpkg -i /directory_full_of_images/*
+
+
+.SH BUGS
+(1)
+The name is not very good.
+
+(2)
+This software is not very well tested, please report any issues.
+
+(3)
+InstallPKG is not very configurable.
+
+
+.SH AUTHOR
+Henri Shustak, Leif Keane
+
+installpkg is protected by various licenses agreements.
+
+Check http://lucidsystems.org for further details.
+
+.SH "SEE ALSO"
+.BR installer (1),
+.BR bash (1),
+.BR grep (1),
+.BR defaults (1),
+.BR basename (1),
+.BR echo (1),
+.BR killall (1),
+.BR tail (1),
+.BR awk (1)

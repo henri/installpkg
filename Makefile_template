@@ -1,0 +1,67 @@
+#
+#   Copyright 2011 Henri Shustak
+#   All rights reserved
+#
+#   Lucid Information Systems
+#   http://www.lucidsystems.org
+#
+#   Licensed under the GNU GPL, Version 3.0 or later
+#
+#   Build an installer for InstallPKG using luggage.
+
+include /usr/local/share/luggage/luggage.make
+
+RESOURCE_D=install_components/resources
+
+# InstallPKG package version
+PACKAGE_VERSION=XXXXXXXXX
+PACKAGE_NAME=InstallPKG
+
+# Paths to various items and tools
+PACKAGEMAKER=/Developer/usr/bin/packagemaker
+TAR=/usr/bin/tar
+CP=/bin/cp
+INSTALL=/usr/bin/install
+DITTO=/usr/bin/ditto
+
+
+TITLE=InstallPKG
+REVERSE_DOMAIN=org.lucidsystems
+PACKAGE_ID=${REVERSE_DOMAIN}.installpkg
+IFPkgFlagBackgroundAlignment=bottomleft
+IFPkgFlagBackgroundScaling=tofit
+IFPkgFlagRelocatable=true
+IFPkgFlagRestartAction=None
+IFPkgFlagRootVolumeOnly=false
+IFPkgBuildDate=${BUILD_DATE}
+IFPkgFlagInstalledSize=102400
+
+PAYLOAD=\
+	pack-script-postflight \
+	pack-usr-share-man-man1 \
+	pack-sbin
+
+
+# man page installation
+
+prep-usr-share-man-man1:
+	@sudo mkdir -p ${WORK_D}/usr/share/man/man1
+	@sudo chown root:wheel ${WORK_D}/usr/share/man/man1
+	@sudo chmod 755 ${WORK_D}/usr/share/man/man1
+
+pack-usr-share-man-man1: prep-usr-share-man-man1
+	@sudo ${INSTALL} -m 755 -o root -g wheel install_components/installpkg.1 ${WORK_D}/usr/share/man/man1/installpkg.1
+
+
+# installpkg installation
+
+prep-sbin:
+	@sudo mkdir -p ${WORK_D}/sbin
+	@sudo chown root:wheel ${WORK_D}/sbin
+	@sudo chmod 755 ${WORK_D}/sbin
+
+pack-sbin: prep-sbin
+	@sudo ${INSTALL} -m 755 -o root -g wheel install_components/installpkg ${WORK_D}/sbin/installpkg
+
+
+

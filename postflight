@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Copyright 2011 Henri Shustak
+# GNU GPL v3
+#
+# Lucid Inforamtion Systems
+# http://www.lucidsystems.org 
+#
+# Version 1.0
+
+# uninstall previous broken version 0.0.3 if it is installed.
+previous_version="$3/sbin/installpkg.bash"
+if [ -f "${previous_version}" ] ; then 
+    rm -f "${previous_version}"
+fi
+
+exit 0

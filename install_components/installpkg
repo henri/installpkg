@@ -1,0 +1,242 @@
+#!/bin/bash
+
+# Licence : GNU GPL v3 or later
+# (C) Copyright 2007 
+# Henri Shustak
+# Lucid Information Systems
+# http://www.luicdsystems.org
+
+# Installs multiple pagkages, by simply specifing the items on the command line
+# All items will be installed to the root directory.
+
+# Version 0.0.8
+
+function check_admin_rights {
+
+    # Check we are running as root
+    currentUser=`whoami`
+    if [ $currentUser != "root" ] ; then
+        echo This script must be run with super user privileges
+        exit_status=-127
+        exit_now
+
+    fi
+}
+
+function check_arguments {
+
+    if [ "$num_argumnets" -lt "1" ] ; then
+        echo "WARNING ! : No argument provided. No packages installed."
+        echo ""
+        echo "            To view the installpkg manual, issue the following command :"
+        echo "                    man installpkg"
+        echo ""
+        echo "            installpkg usage : "
+        echo "                    sudo installpkg /pathtopackage/package.pkg"
+        echo "                    sudo installpkg /pathtopackage/package.mpkg"
+        echo "                    sudo installpkg /directory/containing/packages/*"
+        echo "                    sudo installpkg -i /pathtopackage/package.dmg"
+        echo "                    sudo installpkg -i /directory/containing/dynamicdiskimages/*"
+        echo ""
+        echo ""
+        exit_status=2
+        exit_now
+
+    fi
+    
+    return 0
+       
+}
+
+
+
+function exit_now {
+
+    exit $exit_status
+
+}
+
+
+function check_package {
+
+    darwin_release_version=`uname -r | awk -F "." '{print $1}'`
+    leapoard_relese_version=9
+    
+    if [ -d "${item2add}" ] ; then
+        return 0
+    else
+        if [ $darwin_release_version -ge $leapoard_relese_version ] ; then
+            if [ -d "${item2add}" ] || [ -f "${item2add}" ] ; then
+                return 0
+            fi
+        fi
+        echo "WARNING! : Could not locate package : ${item2add}"
+        return 1
+    fi
+
+}
+
+
+function check_image {
+    
+    if [ -f "${item2add}" ] ; then
+        return 0
+    else
+        echo "WARNING! : Could not locate image : ${item2add}"
+        return 1
+    fi
+
+}
+
+
+function install_package {
+
+    check_package
+    
+    if [ $? == 0 ] ; then
+    
+        #Installing Package
+        sudo installer -pkg "${item2add}" -target /
+
+    fi
+
+}
+
+
+function mount_package {
+
+    check_image
+    image_already_mounted="NO"
+
+    if [ $? == 0 ] ; then
+    
+		#Check if the image is already mounted
+		hdiutil info | grep image-path | awk -F "image-path      : " '{print $NF}' | grep "${item2add}" > /dev/null
+		if [ $? == 0 ] ; then
+			image_already_mounted="YES"
+		fi
+		
+        #Mount image - 
+		image_mount_point=`hdiutil attach "${item2add}" | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
+		
+		#if sucessful recursivly call installpkg to install the package.
+		sudo installpkg -q /Volumes/"${image_mount_point}"/*
+		
+		#unmount the package if it was not already mounted.
+        if [ "${image_already_mounted}" == "NO" ] ; then
+			hdiutil unmount /Volumes/"${image_mount_point}" > /dev/null
+			if [ $? != 0 ] ; then
+				echo "ERROR! : Unable to unmount item."
+			else
+				echo "Item unmounted."
+			fi
+		fi
+
+    fi
+
+}
+
+
+
+
+function check_is_pkg {
+        
+    extension1=`basename "${item2add}" | tail -c 5`
+    extension2=`basename "${item2add}" | tail -c 6`
+    if [ "${extension1}" == ".pkg" ] || [ "${extension2}" == ".mpkg" ] ; then 
+        # This item is an Installer Package
+        return 1
+    else
+        # This item is not an installer package
+        return 0
+    fi
+        
+}
+
+function check_is_dmg {
+        
+    extension1=`basename "${item2add}" | tail -c 5`
+    if [ "${extension1}" == ".dmg" ] ; then 
+        # This item is an dynamic disk image
+        return 1
+    else
+        # This item is not an dynamic disk image
+        return 0
+    fi
+        
+}
+
+
+########### LOGIC AND EXECUTION ###########
+
+# General Settings
+num_argumnets=$#
+exit_status=0
+opt_args_passed=0
+install_from_image=0
+quite_mode_enabled=0
+
+# parse any arguments
+while getopts ":iq" option
+do
+    case $option in
+        i   ) ((opt_args_passed++));((install_from_image++));;
+        q   ) ((opt_args_passed++));((quite_mode_enabled++));;
+        *   ) ;;   # DEFAULT : Do Nothing
+    esac
+done
+shift $(($OPTIND - 1))
+num_argumnets=$#
+#   Decrements the argument pointer so it points to next argument.
+#   $1 now references the first non option item supplied on the command line
+#   if one exists.
+
+# Check we are good to go
+check_arguments
+check_admin_rights
+
+
+# Loop Though the arguments provided.
+for a
+do
+    
+    item2add="$a"
+    
+	if [ $quite_mode_enabled == 0 ] ; then
+    	echo ""
+    	echo ""
+	fi
+	
+	if [ $install_from_image != 0 ] ; then
+		check_is_dmg
+		 if [ $? == 1 ] ; then
+			echo "Mounting Item : ${item2add}"
+			mount_package
+		    else
+			echo "WARNING! : Item is not a dynamic image file : ${item2add}"
+			echo "           Item has not been mounted or installed"
+		 fi
+	else 
+	    check_is_pkg
+	    if [ $? == 1 ] ; then
+		echo "Installing Item : ${item2add}"
+		install_package
+	    else
+		echo "WARNING! : Item is not a package : ${item2add}"
+		echo "           Item has not been installed"
+	    fi
+	fi
+
+done
+
+
+if [ $quite_mode_enabled == 0 ] ; then
+	echo ""
+	echo ""
+	echo "If any of these packages required reboots, then you should restart your computer."
+	echo "To restart the machine type : sudo shutdown -r now"
+fi
+
+exit_now
+
+exit 0
