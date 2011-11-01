@@ -124,7 +124,7 @@ function mount_package {
 		
 		#unmount the package if it was not already mounted.
         if [ "${image_already_mounted}" == "NO" ] ; then
-			hdiutil unmount /Volumes/"${image_mount_point}" > /dev/null
+			hdiutil detach /Volumes/"${image_mount_point}" > /dev/null
 			if [ $? != 0 ] ; then
 				echo "ERROR! : Unable to unmount item."
 			else
