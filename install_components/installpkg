@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.0.9
+# Version 0.1.1
 
 function check_admin_rights {
 
