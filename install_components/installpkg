@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.1
+# Version 0.1.2
 
 function check_admin_rights {
 
@@ -110,25 +110,30 @@ function mount_package {
 
     if [ $? == 0 ] ; then
     
-		#Check if the image is already mounted
+		# check if the image is already mounted
 		hdiutil info | grep image-path | awk -F "image-path      : " '{print $NF}' | grep "${item2add}" > /dev/null
 		if [ $? == 0 ] ; then
 			image_already_mounted="YES"
 		fi
 		
-        #Mount image - 
-		image_mount_point=`hdiutil attach "${item2add}" | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
+		# mount image - 
+		image_mount_point=`hdiutil attach "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
 		
-		#if sucessful recursivly call installpkg to install the package.
-		sudo installpkg -q /Volumes/"${image_mount_point}"/*
+		if [ "${image_mount_point}" == "" ] ; then
+			echo "ERROR! : Unable to mount item."
+			((num_dmg_failed_to_mount++))
+		else
+			# if sucessful recursivly call installpkg to install the package.
+			sudo installpkg -q /Volumes/"${image_mount_point}"/*
 		
-		#unmount the package if it was not already mounted.
-        if [ "${image_already_mounted}" == "NO" ] ; then
-			hdiutil detach /Volumes/"${image_mount_point}" > /dev/null
-			if [ $? != 0 ] ; then
-				echo "ERROR! : Unable to unmount item."
-			else
-				echo "Item unmounted."
+			# unmount the package if it was not already mounted and we managed to mount it earlier.
+	        if [ "${image_already_mounted}" == "NO" ] ; then
+				hdiutil detach /Volumes/"${image_mount_point}" > /dev/null
+				if [ $? != 0 ] ; then
+					echo "ERROR! : Unable to unmount item."
+				else
+					echo "Item unmounted."
+				fi
 			fi
 		fi
 
@@ -175,6 +180,7 @@ exit_status=0
 opt_args_passed=0
 install_from_image=0
 quite_mode_enabled=0
+num_dmg_failed_to_mount=0
 
 # parse any arguments
 while getopts ":iq" option
@@ -196,7 +202,7 @@ check_arguments
 check_admin_rights
 
 
-# Loop Though the arguments provided.
+# Loop though the arguments provided.
 for a
 do
     
@@ -212,7 +218,7 @@ do
 		 if [ $? == 1 ] ; then
 			echo "Mounting Item : ${item2add}"
 			mount_package
-		    else
+		 else
 			echo "WARNING! : Item is not a dynamic image file : ${item2add}"
 			echo "           Item has not been mounted or installed"
 		 fi
@@ -233,9 +239,24 @@ done
 if [ $quite_mode_enabled == 0 ] ; then
 	echo ""
 	echo ""
+	echo "----------------------------------------------------------------------------"
+	echo "Summary : "
+	echo ""
 	echo "If any of these packages required reboots, then you should restart your computer."
 	echo "To restart the machine type : sudo shutdown -r now"
+	if [ $num_dmg_failed_to_mount -gt 0 ] ; then
+		echo ""
+		echo "    WARNING : [${num_dmg_failed_to_mount}] items were .dmg files and they were not able to mounted."
+		echo "              Any image packages (.pkg or .mpkg) that were located within "
+		echo "              these images file (.dmg) files will not have been installed."
+		echo ""
+	fi
+	echo ""
 fi
+
+if [ $num_dmg_failed_to_mount -gt 0 ] ; then
+        exit_status=-130
+fi 
 
 exit_now
 
