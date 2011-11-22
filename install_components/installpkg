@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.2
+# Version 0.1.3
 
 function check_admin_rights {
 
@@ -117,7 +117,7 @@ function mount_package {
 		fi
 		
 		# mount image - 
-		image_mount_point=`hdiutil attach "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
+		image_mount_point=`hdiutil attach -noautoopen "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
 		
 		if [ "${image_mount_point}" == "" ] ; then
 			echo "ERROR! : Unable to mount item."
