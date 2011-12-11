@@ -197,6 +197,15 @@ if [ $? != 0 ] ; then
     clean_exit
 fi
 
+# generate latest version link
+rm -f ./installpkg_latest.dmg
+ln -s ./${output_diskimage_name}_v${package_version}.dmg ./installpkg_latest.dmg 
+if [ $? != 0 ] ; then 
+    echo "    ERROR!: while generating latest version link"
+    export exit_value=-1
+    clean_exit
+fi
+
 echo ""
 echo "---------------------------------------------------------------------------------------"
 echo " Output image \"installpkg_v${package_version}.dmg\" is ready for collection           "
