@@ -10,7 +10,7 @@
 # http://www.lucidsystems.org
 
 function exit_error {
-    echo "Sorry an during unistall, please manually uninstall, or try again."
+    echo "Sorry an during uninstall, please manually uninstall, or try again."
     exit -127
 }
 
@@ -28,6 +28,10 @@ sudo rm -f /sbin/installpkg
 if [ $? != 0 ] ; then
     exit_error
 fi
+
+# Remove from the pkgutil db
+pkgutil --forget org.lucidsystems.installpkg 2> /dev/null
+
 
 # Remove Man Page
 sudo rm -f /usr/share/man/man1/installpkg.1
