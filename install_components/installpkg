@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.3
+# Version 0.1.4
 
 function check_admin_rights {
 
@@ -19,9 +19,24 @@ function check_admin_rights {
         echo This script must be run with super user privileges
         exit_status=-127
         exit_now
-
     fi
+	
 }
+
+
+function check_wget {
+
+	# Check if wget is installed on this system
+	which wget > /dev/null
+    if [ $? != 0 ] ; then
+        echo "This tool \"installpkg\" requires wget to be installed and availible via the PATH shell variable,"
+		echo "when used with the -h option."
+        exit_status=-126
+        exit_now
+    fi
+
+}
+
 
 function check_arguments {
 
@@ -37,6 +52,8 @@ function check_arguments {
         echo "                    sudo installpkg /directory/containing/packages/*"
         echo "                    sudo installpkg -i /pathtopackage/package.dmg"
         echo "                    sudo installpkg -i /directory/containing/dynamicdiskimages/*"
+		echo "                    sudo installpkg -ui http://pathtopackage/package.dmg"
+		echo "                    sudo installpkg -u http://pathtopackage/package.pkg"
         echo ""
         echo ""
         exit_status=2
@@ -49,9 +66,9 @@ function check_arguments {
 }
 
 
-
 function exit_now {
 
+	# Something could be added to clean up the download directory if this is important in the future.
     exit $exit_status
 
 }
@@ -105,9 +122,8 @@ function install_package {
 
 function mount_package {
 
+	image_already_mounted="NO"
     check_image
-    image_already_mounted="NO"
-
     if [ $? == 0 ] ; then
     
 		# check if the image is already mounted
@@ -116,7 +132,7 @@ function mount_package {
 			image_already_mounted="YES"
 		fi
 		
-		# mount image - 
+		# mount image
 		image_mount_point=`hdiutil attach -noautoopen "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
 		
 		if [ "${image_mount_point}" == "" ] ; then
@@ -142,8 +158,6 @@ function mount_package {
 }
 
 
-
-
 function check_is_pkg {
         
     extension1=`basename "${item2add}" | tail -c 5`
@@ -157,6 +171,7 @@ function check_is_pkg {
     fi
         
 }
+
 
 function check_is_dmg {
         
@@ -172,6 +187,58 @@ function check_is_dmg {
 }
 
 
+function setup_tmp_download_directory {
+
+	# Setup a temporary area for downloads
+	if [ -d "${download_directory}" ] ; then
+		return 0
+	else
+		mkdir -p "${download_directory}"
+		if [ $? == 0 ] ; then
+			sync
+			return 0
+		fi
+	fi
+	echo "Unable to generate download directory : ${download_directory}"
+    exit_status=-124
+    exit_now
+
+}
+
+
+function download_from_url_to_temporary_directory {
+
+	cd "${download_directory}"
+	if [ $? != 0 ] ; then 
+		echo "ERROR! : Unable to change directory to the download direcotry."
+		echo "         No attempt will be made to install any further packages which have yet to installed."
+	    exit_status=-123
+	    exit_now
+	fi
+	wget ${wget_options}--backups=0 "${item2add}"
+	if [ $? != 0 ] ; then 
+		echo "ERROR! : Unable to download file : ${item2add}"
+		echo "         No attempt will be made to install any further packages which have yet to installed."
+	    exit_status=-122
+	    exit_now
+	fi
+	downloaded_file_name=`basename "${item2add}"`
+	item2add="${download_directory}/${downloaded_file_name}"
+	sleep 1
+}
+
+
+function check_is_http {
+
+	first_seven_charcters=`echo ${item2add} | cut -c 1-7`
+	if [ "${first_seven_charcters}" == "http://" ] || [ "${first_seven_charcters}" == "https:/" ] ; then
+		return 0
+	fi
+	return 1
+
+}
+
+
 ########### LOGIC AND EXECUTION ###########
 
 # General Settings
@@ -179,14 +246,19 @@ num_argumnets=$#
 exit_status=0
 opt_args_passed=0
 install_from_image=0
+install_from_http_url=0
 quite_mode_enabled=0
 num_dmg_failed_to_mount=0
+download_directory=/tmp/installpkg_downloads
+item2add=""
+wget_options=""
 
 # parse any arguments
-while getopts ":iq" option
+while getopts ":iuq" option
 do
     case $option in
         i   ) ((opt_args_passed++));((install_from_image++));;
+		u   ) ((opt_args_passed++));((install_from_http_url++));;
         q   ) ((opt_args_passed++));((quite_mode_enabled++));;
         *   ) ;;   # DEFAULT : Do Nothing
     esac
@@ -200,7 +272,9 @@ num_argumnets=$#
 # Check we are good to go
 check_arguments
 check_admin_rights
-
+if [ ${quite_mode_enabled} -gt 0 ] ; then
+	wget_options="${wget_options}-q "
+fi
 
 # Loop though the arguments provided.
 for a
@@ -213,6 +287,17 @@ do
     	echo ""
 	fi
 	
+	if [ $install_from_http_url != 0 ] ; then
+		check_wget
+		check_is_http
+		if [ $? != 0 ] ; then
+			echo "ERROR! : Item is not a http/https URL : ${item2add}"
+			echo "         Item has not been mounted or installed"
+		else
+			setup_tmp_download_directory
+			download_from_url_to_temporary_directory
+		fi
+	fi
 	if [ $install_from_image != 0 ] ; then
 		check_is_dmg
 		 if [ $? == 1 ] ; then
@@ -231,6 +316,11 @@ do
 		echo "WARNING! : Item is not a package : ${item2add}"
 		echo "           Item has not been installed"
 	    fi
+	fi
+
+	# clean up an item if it was downloaded
+	if [ $install_from_http_url != 0 ] ; then
+		rm -R "${item2add}"
 	fi
 
 done
@@ -254,9 +344,9 @@ if [ $quite_mode_enabled == 0 ] ; then
 	echo ""
 fi
 
-if [ $num_dmg_failed_to_mount -gt 0 ] ; then
-        exit_status=-130
-fi 
+# if [ $num_dmg_failed_to_mount -gt 0 ] ; then
+#         exit_status=-130
+# fi
 
 exit_now
 
