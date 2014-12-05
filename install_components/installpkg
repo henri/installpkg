@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.4
+# Version 0.1.5
 
 function check_admin_rights {
 
@@ -215,14 +215,15 @@ function download_from_url_to_temporary_directory {
 	    exit_status=-123
 	    exit_now
 	fi
-	wget ${wget_options}--backups=0 "${item2add}"
+	followed_redirects_actual_download_url=`wget --spider "${item2add}" 2>&1 | grep -e "^Location" | awk '{print $2}' | tail -n 1`
+	downloaded_file_name=`basename "${followed_redirects_actual_download_url}"`
+	wget ${wget_options}--backups=0 "${item2add}" -O "${downloaded_file_name}"
 	if [ $? != 0 ] ; then 
 		echo "ERROR! : Unable to download file : ${item2add}"
 		echo "         No attempt will be made to install any further packages which have yet to installed."
 	    exit_status=-122
 	    exit_now
 	fi
-	downloaded_file_name=`basename "${item2add}"`
 	item2add="${download_directory}/${downloaded_file_name}"
 	sleep 1
 }
