@@ -30,7 +30,7 @@ function check_wget {
 	which wget > /dev/null
     if [ $? != 0 ] ; then
         echo "This tool \"installpkg\" requires wget to be installed and availible via the PATH shell variable,"
-		echo "when used with the -h option."
+		echo "when used with the -u option."
         exit_status=-126
         exit_now
     fi
