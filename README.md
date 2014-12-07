@@ -9,8 +9,10 @@ Use this GitHub project to build the OS X package installer for InstallPKG or do
 
 Support for URL install package source files is provided by wget. If you do not have wget installed on your system and you would rather not install the developer tools then download wget for OS X as a package from : http://rudix.org/packages/wget.html
 
-Basic usage example to install all .pkg files found within a specific directory : installpkg /path/to/directory/of/packages/*
+Basic usage example to install all .pkg files found within a specific directory :
+installpkg /path/to/directory/of/packages/*
 
-Full usage information and examples are availibe by typing 'man installpkg' once installed.
+Full usage information and examples are available once installed.by typing : 
+man installpkg
 
 Comments and suggestions regarding the InstallPKG project are very welcome.
