@@ -13,7 +13,10 @@ attempts to install packages passed in as argument(s)
 If the items file name ends in .pkg or .mpkg installation will be attempted.
 
 It is also possible to use the -i flag to install all the packages in
-root level of a .dmg file.
+root level of a .dmg file. In addition it is possible to use the -u
+flag to specify installation of a flat package from a specified
+URL (downloaded with wget). Combinations of various flags are
+also possible and encouraged.
 
 Usage Examples :
 
@@ -58,3 +61,4 @@ Check http://lucidsystems.org for further details.
 .BR killall (1),
 .BR tail (1),
 .BR awk (1)
+.BR wget (1)
