@@ -13,7 +13,7 @@ Basic usage example to install all .pkg files found within a specific directory 
 
     installpkg /path/to/directory/of/packages/*
 
-Full usage information and examples are available once installed.by typing : 
+Full usage information and examples are available once installed by typing : 
 
     man installpkg
 
