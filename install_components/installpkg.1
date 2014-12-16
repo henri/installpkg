@@ -14,17 +14,18 @@ If the items file name ends in .pkg or .mpkg installation will be attempted.
 
 Flag summary : 
  -i		install from disk image
- -q		quite output
  -h		hide mount point of disk iamge (only works with the -i flag)
  -u		install from URL
+ -q		quite output
  
-It is also possible to use the -i flag to install all the packages in
+It is possible to use the -i flag to install all the packages in 
 root level of a .dmg file. In addition it is possible to use the -u
 flag to specify installation of a flat package from a specified
-URL (downloaded with wget). It is also possible to use the -h
-flag in order to mount to a temporary location and also to hide
-the mount point from the Finder. Combinations of various flags
-are also possible and encouraged.
+URL (downloaded with wget). Usage of the -h flag will result in
+mounting to a temporary location and also for the mount point
+to be hiden from the Finder. 
+
+Combinations of various flags are also possible and encouraged.
 
 Usage Examples :
 
@@ -38,9 +39,11 @@ Usage Examples :
    
    installpkg -iu http://lucid.systems/download/installpkg
    
+   installpkg -iuh http://lucid.systems/download/installpkg
+   
    installpkg -u http://pkgserver.example.com/mypackage.pkg
 
-   installpkg -ih image1.dmg
+   installpkg -ih image1.dmg image2.dmg
 
 .SH BUGS
 (1)
@@ -59,6 +62,8 @@ Henri Shustak, Leif Keane
 installpkg is protected by various licenses agreements.
 
 Check http://lucidsystems.org for further details.
+
+InstallPKG website : http://www.lucid.technology/tools/installpkg
 
 .SH "SEE ALSO"
 .BR installer (1),
