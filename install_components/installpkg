@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.6
+# Version 0.1.7
 
 function check_admin_rights {
 
@@ -20,6 +20,16 @@ function check_admin_rights {
         exit_status=-127
         exit_now
     fi
+	
+}
+
+function check_flags_are_valid {
+
+	if [ $hide_mode_enabled != 0 ] && [ $install_from_image == 0 ] ; then
+        echo "ERROR! : The -h flag is only availible in combination with the -i flag."
+        exit_status=-122
+        exit_now
+	fi
 	
 }
 
@@ -52,8 +62,9 @@ function check_arguments {
         echo "                    sudo installpkg /directory/containing/packages/*"
         echo "                    sudo installpkg -i /pathtopackage/package.dmg"
         echo "                    sudo installpkg -i /directory/containing/dynamicdiskimages/*"
-		echo "                    sudo installpkg -ui http://pathtopackage/package.dmg"
 		echo "                    sudo installpkg -u http://pathtopackage/package.pkg"
+		echo "                    sudo installpkg -ui http://pathtopackage/package.dmg"
+        echo "                    sudo installpkg -ih /pathtopackage/package.dmg"
         echo ""
         echo ""
         exit_status=2
@@ -68,7 +79,7 @@ function check_arguments {
 
 function exit_now {
 
-	# Something could be added to clean up the download directory if this is important in the future.
+	# Something could be added to clean up the download directory and the mount point directory if this is important.
     exit $exit_status
 
 }
@@ -127,9 +138,11 @@ function install_package {
 
 function mount_package {
 
+	#image_mount_return_code=0
 	number_of_packages_installed_from_image=0
 	image_already_mounted="NO"
     check_image
+
     if [ $? == 0 ] ; then
     
 		# check if the image is already mounted
@@ -139,7 +152,13 @@ function mount_package {
 		fi
 		
 		# mount image
-		image_mount_point=`hdiutil attach -noautoopen "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
+		if [ $hide_mode_enabled == 0 ] ; then
+			image_mount_point=`hdiutil attach -noautoopen "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
+			image_mount_point="/Volumes/${image_mount_point}"
+		else
+			setup_tmp_mount_directory
+			image_mount_point=`hdiutil attach -nobrowse -mountrandom "$mount_directory/" -noautoopen "${item2add}" 2>/dev/null | grep "$mount_directory/" | awk -F "$mount_directory/" '{print $NF}'`
+		fi
 		
 		if [ "${image_mount_point}" == "" ] ; then
 			echo "ERROR! : Unable to mount item."
@@ -147,7 +166,8 @@ function mount_package {
 			return -1
 		else
 			# if sucessful recursivly call installpkg to install the package.
-			sudo installpkg -q /Volumes/"${image_mount_point}"/*
+			image_mount_point="${mount_directory}/${image_mount_point}"
+			sudo installpkg -q "${image_mount_point}"/*
 			if [ $? != 0 ] ; then
 				((num_installer_errors++))	
 			else
@@ -157,12 +177,12 @@ function mount_package {
 			# unmount the package if it was not already mounted and we managed to mount it earlier.
 	        if [ "${image_already_mounted}" == "NO" ] ; then
 				sleep 1
-				hdiutil detach /Volumes/"${image_mount_point}" > /dev/null
+				hdiutil detach "${image_mount_point}" > /dev/null
 				if [ $? != 0 ] ; then
 					sleep 3
-					hdiutil detach /Volumes/"${image_mount_point}" -force > /dev/null
+					hdiutil detach "${image_mount_point}" -force > /dev/null
 					if [ $? != 0 ] ; then
-						echo "WARNING! : Unable to unmount item : /Volumes/${image_mount_point}"
+						echo "WARNING! : Unable to unmount item : ${image_mount_point}"
 					else
 						echo "Item unmounted."
 					fi
@@ -235,6 +255,24 @@ function setup_tmp_download_directory {
 
 }
 
+function setup_tmp_mount_directory {
+
+	# Setup a temporary area for mountpoints
+	if [ -d "${mount_directory}" ] ; then
+		return 0
+	else
+		mkdir -p "${mount_directory}"
+		if [ $? == 0 ] ; then
+			sync
+			return 0
+		fi
+	fi
+	echo "Unable to generate mountpoint directory : ${mount_directory}"
+    exit_status=-124
+    exit_now
+
+}
+
 
 function download_from_url_to_temporary_directory {
 
@@ -280,20 +318,23 @@ opt_args_passed=0
 install_from_image=0
 install_from_http_url=0
 quite_mode_enabled=0
+hide_mode_enabled=0
 num_dmg_failed_to_mount=0
 download_directory=/tmp/installpkg_downloads
+mount_directory=/tmp/installpkg_mountpoints
 item2add=""
 wget_options=""
 num_installer_errors=0
 num_installed_packages_or_images=0
 
 # parse any arguments
-while getopts ":iuq" option
+while getopts ":iuqh" option
 do
     case $option in
         i   ) ((opt_args_passed++));((install_from_image++));;
 		u   ) ((opt_args_passed++));((install_from_http_url++));;
         q   ) ((opt_args_passed++));((quite_mode_enabled++));;
+		h	) ((opt_args_passed++));((hide_mode_enabled++));;
         *   ) ;;   # DEFAULT : Do Nothing
     esac
 done
@@ -306,6 +347,7 @@ num_argumnets=$#
 # Check we are good to go
 check_arguments
 check_admin_rights
+check_flags_are_valid
 if [ ${quite_mode_enabled} -gt 0 ] ; then
 	wget_options="${wget_options}-q "
 fi

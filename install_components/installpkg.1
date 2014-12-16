@@ -12,11 +12,19 @@ INSTALLPKG
 attempts to install packages passed in as argument(s) 
 If the items file name ends in .pkg or .mpkg installation will be attempted.
 
+Flag summary : 
+ -i		install from disk image
+ -q		quite output
+ -h		hide mount point of disk iamge (must be used in conjunction with the -i flag)
+ -u		install from URL
+ 
 It is also possible to use the -i flag to install all the packages in
 root level of a .dmg file. In addition it is possible to use the -u
 flag to specify installation of a flat package from a specified
-URL (downloaded with wget). Combinations of various flags are
-also possible and encouraged.
+URL (downloaded with wget). It is also possible to use the -h
+flag in order to mount to a temporary location and also to hide
+the mount point from the Finder. Combinations of various flags
+are also possible and encouraged.
 
 Usage Examples :
 
@@ -32,6 +40,7 @@ Usage Examples :
    
    installpkg -u http://pkgserver.example.com/mypackage.pkg
 
+   installpkg -ih image1.dmg
 
 .SH BUGS
 (1)
