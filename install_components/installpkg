@@ -9,7 +9,7 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.7
+# Version 0.1.8
 
 function check_admin_rights {
 
@@ -154,7 +154,6 @@ function mount_package {
 		# mount image
 		if [ $hide_mode_enabled == 0 ] ; then
 			image_mount_point=`hdiutil attach -noautoopen "${item2add}" 2>/dev/null | grep "/Volumes/" | awk -F "/Volumes/" '{print $NF}'`
-			image_mount_point="/Volumes/${image_mount_point}"
 		else
 			setup_tmp_mount_directory
 			image_mount_point=`hdiutil attach -nobrowse -mountrandom "$mount_directory/" -noautoopen "${item2add}" 2>/dev/null | grep "$mount_directory/" | awk -F "$mount_directory/" '{print $NF}'`
@@ -166,7 +165,11 @@ function mount_package {
 			return -1
 		else
 			# if sucessful recursivly call installpkg to install the package.
-			image_mount_point="${mount_directory}/${image_mount_point}"
+			if [ $hide_mode_enabled == 0 ] ; then
+				image_mount_point="/Volumes/${image_mount_point}"
+			else
+				image_mount_point="${mount_directory}/${image_mount_point}"
+			fi
 			sudo installpkg -q "${image_mount_point}"/*
 			if [ $? != 0 ] ; then
 				((num_installer_errors++))	
