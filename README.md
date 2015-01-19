@@ -18,7 +18,7 @@ Full usage information and usage examples are available once installed by typing
 
 
 Support for the -u "install from URL" flag is provided by wget. If you do not have wget installed on your system and you would rather not install the developer tools, then [download wget for OS X as a package][3]. It is possible to install wget in a number of ways. Just a few installation approaches relating to installation of wget on OS X are listed below :
- * [rudix (pre-built wget binary with install package for OS X)][3].
+ * [rudix (pre-built wget binary with install package for OS X)][3] (note : installs to /usr/local/bin/wget).
  * [homebrew][2]
  * [macports][1]
 
