@@ -17,4 +17,12 @@ Full usage information and usage examples are available once installed by typing
 
     man installpkg
 
+If you use the -u "install from URL flag is used", then wget is required. It is possible to install wget in a number of ways. Just a few installation approaches are [macports][1], [homebrew][2], [rudix (pre-built binary with install package for OS X)][3].
+
 Comments and suggestions regarding the InstallPKG project are very welcome.
+
+
+  [1]: https://www.macports.org
+  [2]: http://brew.sh
+  [3]: http://rudix.org/packages/wget.html
+  
