@@ -1,6 +1,6 @@
 #  InstallPKG  #
 
-[![download](http://lucidsystems.tk/images/multi/apple_package.png)](http://www.lucid.systems/download/installpkg) [![download](http://lucidsystems.tk/images/multi/download.png)](http://www.lucid.systems/download/installpkg)
+[![download](http://lucidsystems.tk/images/multi/download.png)](http://www.lucid.systems/download/installpkg) [![download](http://lucidsystems.tk/images/multi/apple_package.png)](http://www.lucid.systems/download/installpkg)
 
 Download the latest version (a compiled package installer) via the following URL : 
 http://www.lucid.systems/download/installpkg
