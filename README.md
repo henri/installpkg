@@ -1,15 +1,15 @@
 #  InstallPKG  #
 
-[![download](http://lucidsystems.tk/images/multi/apple_package.png)](http://www.lucid.systems/download/installpkg)
-
-InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the GNU GPL licence.
-
-[![download](http://lucidsystems.tk/images/multi/download.png)](http://www.lucid.systems/download/installpkg)
+[![download](http://lucidsystems.tk/images/multi/apple_package.png)](http://www.lucid.systems/download/installpkg) [![download](http://lucidsystems.tk/images/multi/download.png)](http://www.lucid.systems/download/installpkg)
 
 Download the latest version (a compiled package installer) via the following URL : 
 http://www.lucid.systems/download/installpkg
 
+InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the GNU GPL licence.
+
+
 Use this GitHub project to build the OS X package installer for InstallPKG or download the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
+
 
 Basic usage example to install all .pkg files found within a specific directory :
 
