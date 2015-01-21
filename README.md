@@ -1,4 +1,4 @@
-# InstallPKG # ![download](http://lucidsystems.tk/images/multi/apple_package.png)
+![download](http://lucidsystems.tk/images/multi/apple_package.png) # InstallPKG # 
 
 InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the GNU GPL licence.
 
