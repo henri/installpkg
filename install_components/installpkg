@@ -4,7 +4,8 @@
 # (C) Copyright 2007 
 # Henri Shustak
 # Lucid Information Systems
-# http://www.luicdsystems.org
+# http://www.luicd.systems/contact
+# http://www.luicd.systems/tools/installpkg
 
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
