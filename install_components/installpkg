@@ -4,13 +4,12 @@
 # (C) Copyright 2007 
 # Henri Shustak
 # Lucid Information Systems
-# http://www.luicd.systems/contact
-# http://www.luicd.systems/tools/installpkg
+# http://www.luicdsystems.org
 
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.8
+# Version 0.1.9
 
 function check_admin_rights {
 
@@ -373,6 +372,8 @@ do
 		if [ $? != 0 ] ; then
 			echo "ERROR! : Item is not a http/https URL : ${item2add}"
 			echo "         Item has not been mounted or installed"
+			#skip installation of this this item
+			continue
 		else
 			setup_tmp_download_directory
 			download_from_url_to_temporary_directory
@@ -453,3 +454,6 @@ fi
 exit_now
 
 exit 0
+
+
+

@@ -8,7 +8,7 @@ http://www.lucid.systems/download/installpkg
 InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the GNU GPL licence.
 
 
-Use this GitHub project to build the OS X package installer for InstallPKG or download the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
+Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
 
 
 Basic usage example to install all .pkg files found within a specific directory :
@@ -33,4 +33,6 @@ Comments and suggestions regarding the InstallPKG project are very welcome.
   [1]: https://www.macports.org
   [2]: http://brew.sh
   [3]: http://rudix.org/packages/wget.html
+  [4]: https://github.com/unixorn/luggage
+  [5]: http://www.lucid.systems/download/installpkg
   
