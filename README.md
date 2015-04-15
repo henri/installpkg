@@ -27,7 +27,8 @@ Support for the -u "install from URL" flag is provided by wget. If you do not ha
  * [macports][1]
 
 
-Comments and suggestions regarding the InstallPKG project are very welcome.
+Comments and suggestions regarding the InstallPKG project are very welcome. Also, Once installed (along with wget), you can use installpkg to update installpkg with the following command : 
+    installpkg -iuh http://lucid.systems/download/installpkg
 
 
   [1]: https://www.macports.org
