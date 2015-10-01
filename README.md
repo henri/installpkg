@@ -8,7 +8,7 @@ http://www.lucid.systems/download/installpkg
 InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the GNU GPL licence.
 
 OS 10.11 (El Capitan) rootless note. At present v0.1.9 of installpkg is only compatible with 10.11 systems which have rootless mode disabled. 
-  * [Additional details regrding rootless mode on Mac OS 10.11][1]
+  * [Additional details regrding rootless mode on Mac OS 10.11][6]
 
 Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
 
