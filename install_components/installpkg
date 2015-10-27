@@ -9,7 +9,10 @@
 # Installs multiple pagkages, by simply specifing the items on the command line
 # All items will be installed to the root directory.
 
-# Version 0.1.9
+# Project information and full source code repository : 
+# http://www.lucid.technology/tools/installpkg
+
+# Version 0.2.0
 
 function check_admin_rights {
 
@@ -65,6 +68,9 @@ function check_arguments {
 		echo "                    sudo installpkg -u http://pathtopackage/package.pkg"
 		echo "                    sudo installpkg -ui http://pathtopackage/package.dmg"
         echo "                    sudo installpkg -ih /pathtopackage/package.dmg"
+        echo ""
+        echo "            Project information, download and source code repository :"
+		echo "                    http://www.lucid.technology/tools/installpkg"
         echo ""
         echo ""
         exit_status=2

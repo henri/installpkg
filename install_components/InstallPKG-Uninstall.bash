@@ -9,6 +9,12 @@
 # Licenced Under the GNU GPL
 # http://www.lucidsystems.org
 
+# Note : This script will not uninstall previous versions. You must use the correct 
+# unintstaller for the correct version you are uninstalling. If you run the installer 
+# and then run the uninstaller you will sucsesfully uninstall installpkg.
+
+# Version 1.2
+
 function exit_error {
     echo "Sorry an during uninstall, please manually uninstall, or try again."
     exit -127
@@ -24,7 +30,7 @@ clear
 echo "You must be an administrator to remove the InstallPGK Software"
 
 # Remove InstallPKG Software
-sudo rm -f /sbin/installpkg
+sudo rm -f /usr/local/bin/installpkg
 if [ $? != 0 ] ; then
     exit_error
 fi
@@ -32,9 +38,8 @@ fi
 # Remove from the pkgutil db
 pkgutil --forget org.lucidsystems.installpkg 2> /dev/null
 
-
 # Remove Man Page
-sudo rm -f /usr/share/man/man1/installpkg.1
+sudo rm -f /usr/local/share/man/man1/installpkg.1
 if [ $? != 0 ] ; then
     exit_error
 fi

@@ -38,30 +38,30 @@ IFPkgFlagInstalledSize=102400
 
 PAYLOAD=\
 	pack-script-postflight \
-	pack-usr-share-man-man1 \
-	pack-sbin
+	pack-usr-local-share-man-man1 \
+	pack-usr-local-bin
 
 
 # man page installation
 
-prep-usr-share-man-man1:
-	@sudo mkdir -p ${WORK_D}/usr/share/man/man1
-	@sudo chown root:wheel ${WORK_D}/usr/share/man/man1
-	@sudo chmod 755 ${WORK_D}/usr/share/man/man1
+prep-usr-local-share-man-man1:
+	@sudo mkdir -p ${WORK_D}/usr/local/share/man/man1
+	@sudo chown root:wheel ${WORK_D}/usr/local/share/man/man1
+	@sudo chmod 755 ${WORK_D}/usr/local/share/man/man1
 
-pack-usr-share-man-man1: prep-usr-share-man-man1
-	@sudo ${INSTALL} -m 755 -o root -g wheel install_components/installpkg.1 ${WORK_D}/usr/share/man/man1/installpkg.1
+pack-usr-local-share-man-man1: prep-usr-local-share-man-man1
+	@sudo ${INSTALL} -m 755 -o root -g wheel install_components/installpkg.1 ${WORK_D}/usr/local/share/man/man1/installpkg.1
 
 
 # installpkg installation
 
-prep-sbin:
-	@sudo mkdir -p ${WORK_D}/sbin
-	@sudo chown root:wheel ${WORK_D}/sbin
-	@sudo chmod 755 ${WORK_D}/sbin
+prep-usr-local-bin:
+	@sudo mkdir -p ${WORK_D}/usr/local/bin
+	@sudo chown root:wheel ${WORK_D}/usr/local/bin
+	@sudo chmod 755 ${WORK_D}/usr/local/bin
 
-pack-sbin: prep-sbin
-	@sudo ${INSTALL} -m 755 -o root -g wheel install_components/installpkg ${WORK_D}/sbin/installpkg
+pack-usr-local-bin: prep-usr-local-bin
+	@sudo ${INSTALL} -m 755 -o root -g wheel install_components/installpkg ${WORK_D}/usr/local/bin/installpkg
 
 
 
