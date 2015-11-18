@@ -7,7 +7,7 @@
 # Lucid Information Systems
 # http://www.lucidsystems.org
 #
-# v1.0 : initial release
+# v1.1 : initial release
 #
 
 
@@ -23,7 +23,8 @@ output_package="${tmp_installpkg_build_dir}/InstallPKG.pkg"
 make_file_template_for_package_building="${parent_directory}/Makefile_template"
 make_file_for_package_building="${parent_directory}/Makefile"
 output_diskimage_name="installpkg"
-output_diskimage_path="${parent_directory}/${output_diskimage_name}_v${package_version}.dmg"
+output_diskimage_path="${parent_directory}/builds/${output_diskimage_name}_v${package_version}.dmg"
+realitive_output_diskimage_path="./builds/${output_diskimage_name}_v${package_version}.dmg"
 clean_up_pkg_file="YES"
 export exit_value=0
 
@@ -199,7 +200,7 @@ fi
 
 # generate latest version link
 rm -f ./installpkg_latest.dmg
-ln -s ./${output_diskimage_name}_v${package_version}.dmg ./installpkg_latest.dmg 
+ln -s "${realitive_output_diskimage_path}" ./installpkg_latest.dmg 
 if [ $? != 0 ] ; then 
     echo "    ERROR!: while generating latest version link"
     export exit_value=-1
@@ -208,7 +209,7 @@ fi
 
 echo ""
 echo "---------------------------------------------------------------------------------------"
-echo " Output image \"installpkg_v${package_version}.dmg\" is ready for collection           "
+echo " Output image \"installpkg_v${package_version}.dmg\" is ready for collection from the builds direcotry "
 echo "---------------------------------------------------------------------------------------"
 echo ""
 
