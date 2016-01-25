@@ -16,14 +16,16 @@ Flag summary :
  -i		install from disk image
  -h		hide mount point of disk iamge (only works with the -i flag)
  -u		install from URL
+ -c		copy to local storage before installing (incompatible with -u flag)
  -q		quiet output (less verbose)
  
 It is possible to use the -i flag to install all the packages in 
 root level of a .dmg file. In addition it is possible to use the -u
 flag to specify installation of a flat package from a specified
 URL (downloaded with wget). Usage of the -h flag will result in
-mounting to a temporary location and also for the mount point
-to be hiden from the Finder. 
+mounting to a temporary location and also for the mount point to 
+be hiden from the Finder. The -c flag will result in all specifed 
+files being copied to a local storage area prior to being installed.
 
 Combinations of various flags are also possible and encouraged.
 
@@ -44,6 +46,8 @@ Usage Examples :
    installpkg -u http://pkgserver.example.com/mypackage.pkg
 
    installpkg -ih image1.dmg image2.dmg
+   
+   installpkg -ihc image1.dmg image2.dmg
    
 
 .SH BUGS

@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.0
+# Version 0.2.2
 
 function check_admin_rights {
 
@@ -33,6 +33,12 @@ function check_flags_are_valid {
         exit_status=-122
         exit_now
 	fi
+	
+	if [ $copy_mode_enabled != 1 ] && [ $install_from_http_url == 1 ] ; then
+        echo "ERROR! : The -c flag is not compatible with the -u flag."
+        exit_status=-121
+        exit_now
+	fi	
 	
 }
 
@@ -65,9 +71,9 @@ function check_arguments {
         echo "                    sudo installpkg /directory/containing/packages/*"
         echo "                    sudo installpkg -i /pathtopackage/package.dmg"
         echo "                    sudo installpkg -i /directory/containing/dynamicdiskimages/*"
+        echo "                    sudo installpkg -ih /pathtopackage/package.dmg"
 		echo "                    sudo installpkg -u http://pathtopackage/package.pkg"
 		echo "                    sudo installpkg -ui http://pathtopackage/package.dmg"
-        echo "                    sudo installpkg -ih /pathtopackage/package.dmg"
         echo ""
         echo "            Project information, download and source code repository :"
 		echo "                    http://www.lucid.technology/tools/installpkg"
@@ -86,6 +92,12 @@ function check_arguments {
 function exit_now {
 
 	# Something could be added to clean up the download directory and the mount point directory if this is important.
+
+	# Remove copy mode instance directory
+	if [ "${local_directory_instance}" != "" ] && [ $copy_mode_enabled != 0 ]; then
+		rm -Rf "${local_directory_instance}"
+	fi
+	
     exit $exit_status
 
 }
@@ -104,7 +116,7 @@ function check_package {
                 return 0
             fi
         fi
-        echo "WARNING! : Could not locate package : ${item2add}"
+        echo "    WARNING! : Could not locate package : ${item2add}"
         return 1
     fi
 
@@ -116,7 +128,7 @@ function check_image {
     if [ -f "${item2add}" ] ; then
         return 0
     else
-        echo "WARNING! : Could not locate image : ${item2add}"
+        echo "    WARNING! : Could not locate image : ${item2add}"
         return 1
     fi
 
@@ -131,7 +143,7 @@ function install_package {
         sudo installer -pkg "${item2add}" -target /
 		if [ $? != 0 ] ; then
 			((num_installer_errors++))
-			echo "WARNING! : Errors were encountered during installation of package : ${item2add}"
+			echo "    WARNING! : Errors were encountered during installation of package : ${item2add}"
 		else
 			((num_installed_packages_or_images++))
 		fi
@@ -176,7 +188,7 @@ function mount_package {
 			else
 				image_mount_point="${mount_directory}/${image_mount_point}"
 			fi
-			sudo installpkg -q "${image_mount_point}"/*
+			sudo "${absolute_path_installpkg}" -q "${image_mount_point}"/*
 			if [ $? != 0 ] ; then
 				((num_installer_errors++))	
 			else
@@ -191,7 +203,7 @@ function mount_package {
 					sleep 3
 					hdiutil detach "${image_mount_point}" -force > /dev/null
 					if [ $? != 0 ] ; then
-						echo "WARNING! : Unable to unmount item : ${image_mount_point}"
+						echo "    WARNING! : Unable to unmount item : ${image_mount_point}"
 					else
 						echo "Item unmounted."
 					fi
@@ -225,7 +237,7 @@ function check_is_pkg {
         return 1
     else
         # This item is not an installer package
-		echo "WARNING! : Item is not a package and has not been installed : ${item2add}"
+		echo "    WARNING! : Item is not a package and has not been installed : ${item2add}"
         return 0
     fi
         
@@ -243,6 +255,41 @@ function check_is_dmg {
         return 0
     fi
         
+}
+
+function setup_tmp_local_directory {
+
+	# Setup a temporary area for local copys of files (this will contain individual folders for each instance of installpkg)
+	if [ -d "${local_directory}" ] ; then
+		return 0
+	else
+		mkdir -p "${local_directory}"
+		if [ $? == 0 ] ; then
+			sync
+			return 0
+		fi
+	fi
+	echo "Unable to generate local directory : ${local_directory}"
+    exit_status=-124
+    exit_now
+
+}
+
+
+function setup_tmp_local_directory_instance {
+
+	# Setup a temporary area for local copys of files ; 
+	# this is instance directory is used for a partiuclar instance of install pkg (you could run more than one instanace simultaniusly)
+	if [ -d "${local_directory}" ] ; then
+		local_directory_instance=`mktemp -d "${local_directory_instance_template}"`
+		if [ $? == 0 ] ; then
+			return 0
+		fi
+	fi
+	echo "Unable to generate local directory instance within the local directory : ${local_directory}"
+    exit_status=-124
+    exit_now
+
 }
 
 
@@ -328,22 +375,31 @@ install_from_image=0
 install_from_http_url=0
 quite_mode_enabled=0
 hide_mode_enabled=0
+copy_mode_enabled=0
 num_dmg_failed_to_mount=0
+local_directory=/tmp/installpkg_local
+local_directory_instance_template=${local_directory}/installpkg_instance_XXXXXXXXXX
+local_directory_instance=""
+local_copy_rsync_options=""
+local_copy_recurssive_call_options=""
+lcrco="" #local_copy_recurssive_call_options
 download_directory=/tmp/installpkg_downloads
 mount_directory=/tmp/installpkg_mountpoints
 item2add=""
 wget_options=""
 num_installer_errors=0
 num_installed_packages_or_images=0
+absolute_path_installpkg="${0}"
 
 # parse any arguments
-while getopts ":iuqh" option
+while getopts ":iuqhc" option
 do
     case $option in
-        i   ) ((opt_args_passed++));((install_from_image++));;
-		u   ) ((opt_args_passed++));((install_from_http_url++));;
-        q   ) ((opt_args_passed++));((quite_mode_enabled++));;
-		h	) ((opt_args_passed++));((hide_mode_enabled++));;
+        i   ) ((opt_args_passed++));((install_from_image++));lcrco="${lcrco}i";;
+		u   ) ((opt_args_passed++));((install_from_http_url++));lcrco="${lcrco}u";;
+        q   ) ((opt_args_passed++));((quite_mode_enabled++));lcrco="${lcrco}q";;
+		h	) ((opt_args_passed++));((hide_mode_enabled++));lcrco="${lcrco}h";;
+		c	) ((opt_args_passed++));((copy_mode_enabled++));;
         *   ) ;;   # DEFAULT : Do Nothing
     esac
 done
@@ -360,6 +416,72 @@ check_flags_are_valid
 if [ ${quite_mode_enabled} -gt 0 ] ; then
 	wget_options="${wget_options}-q "
 fi
+
+# if copy mode is enabled, then perform the copy before proceeding any further with recursive call to installpkg
+if [ $copy_mode_enabled == 1 ] ; then 
+	num_items_to_copy_locally_which_were_not_found=0
+	num_items_to_copy_locally_which_were_found=0
+	setup_tmp_local_directory
+	setup_tmp_local_directory_instance
+	local_copy_recurssive_call_options="${lcrco}"
+	
+	#configure trap for deleting temporary local files for this instance on unexpected exit
+	#trap "{ sleep 0.5 ;rm -rf \"${local_directory_instance}\"; }" EXIT
+	
+	if [ $quite_mode_enabled == 0 ] ; then
+		local_copy_rsync_options="--archive --human-readable --quiet --progress"
+	else	
+		local_copy_rsync_options="--archive --quiet"
+	fi
+	
+	# Loop though the arguments provided and copy them all over to the local temporary directory
+	for s
+	do 
+		if [ -e "${s}" ] ; then
+			((num_items_to_copy_locally_which_were_found++))
+			rsync ${local_copy_rsync_options} "${s}" "${local_directory_instance}/"
+			if [ ${?} != 0 ] ; then
+				echo "    ERROR! : Copy to local storage failed : ${s}"
+				exit_status=-50
+				exit_now
+			fi
+		else
+			((num_items_to_copy_locally_which_were_not_found++))
+			echo "    WARNING! : Unable to locate origional specified item : ${s}"
+		fi
+	done
+	if [ $num_items_to_copy_locally_which_were_found == 0 ] ; then
+		echo "    ERROR! : No files were located to copy to local storage."
+		exit_status=-51
+		exit_now
+	fi
+	
+	# Report that the files are now locally availible
+	echo ""
+	echo "--------------------------------------------------------------------"
+	echo "    NOTICE! : Located files copied to local storage succesfully."
+	echo "--------------------------------------------------------------------"
+	echo ""
+	
+	# Perform recursive install
+	sudo "${absolute_path_installpkg}" ${local_copy_recurssive_call_options} "${local_directory_instance}/"*
+	exit_status=${?}
+	
+	if [ ${num_items_to_copy_locally_which_were_not_found} != 0 ] ; then
+		echo ""
+		echo "    WARNING! : [${num_items_to_copy_locally_which_were_not_found}] items were not copied to local storage and as such these items were not installed."
+		echo ""
+		if [ $exit_status == 0 ] ; then
+			exit_status=-130
+		else
+			exit_status=-131
+		fi
+	fi
+	# Remove any temporary local instance files
+	rm -rf \"${local_directory_instance}\"
+	exit_now
+fi
+
 
 # Loop though the arguments provided.
 for a
@@ -396,8 +518,8 @@ do
 				((num_installed_packages_or_images++))	
 			fi
 		 else
-			echo "WARNING! : Item is not a dynamic image file : ${item2add}"
-			echo "           Item has not been mounted or installed"
+			echo "    WARNING! : Item is not a dynamic image file : ${item2add}"
+			echo "               Item has not been mounted or installed"
 		 fi
 	else 
 	    check_is_pkg
