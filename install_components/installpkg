@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.3
+# Version 0.2.4
 
 function check_admin_rights {
 
@@ -364,6 +364,95 @@ function check_is_http {
 
 }
 
+function add_item_to_volumes_to_unmount_index {
+	
+	volume_return_value=`echo "${1}" | grep -e "^/Volumes/" | awk -F "/" '{print $3}'`
+	if [ "${volume_return_value}" != "" ] ; then
+		volumes_to_unmount[${volumes_to_unmount_index}]="${volume_return_value}"
+		((volumes_to_unmount_index++))
+		return 0
+	fi
+	return 1
+	
+}
+
+function eject_devices_and_unmount_volumes_from_indexs {
+	
+	# lets just find the unique volumes to eject
+	eval volumes_to_unmount_unique=($(printf "%q\n" "${volumes_to_unmount[@]}" | sort -u))
+	for v in "${volumes_to_unmount_unique[@]}" ; do 
+		sync
+		diskutil_unmount_result=`diskutil unmount "/Volumes/${v}" 2> /dev/null`
+		if [ $? == 0 ] ; then
+			((num_volume_unmount_success++))
+			device_of_unmounted_volume=`echo "${diskutil_unmount_result}" | awk -F " on " '{print $2}' | awk '{print $1}'`
+			if [ "${device_of_unmounted_volume}" != "" ] ; then
+				devices_to_eject[${devices_to_eject_index}]="${device_of_unmounted_volume}"
+				((devices_to_eject_index++))
+			fi
+			if [ $quite_mode_enabled == 0 ] ; then
+				if [ "${device_of_unmounted_volume}" != "" ] ; then related_device=" (/dev/${device_of_unmounted_volume})" ; fi
+				echo "    Unmounted Volume Succesfully : \"/Volumes/${v}\"${related_device}"
+			fi
+		else
+			((num_volume_unmount_error++)) 
+			if [ $quite_mode_enabled == 0 ] ; then
+				echo "    ERROR! : Unable to Unmount Volume : \"/Volumes/${v}\""
+			fi
+			exit_status=-77
+		fi
+	
+	done
+	if [ $quite_mode_enabled == 0 ] ; then
+		echo ""
+	fi
+	# eject related devices
+	eval devices_to_eject_unique=($(printf "%q\n" "${devices_to_eject[@]}" | sort -u))
+	for d in "${devices_to_eject_unique[@]}" ; do
+		sync
+		sleep 1
+		diskutil eject "${d}" 2> /dev/null > /dev/null
+		if [ $? == 0 ] ; then
+			((num_device_eject_success++))
+			if [ $quite_mode_enabled == 0 ] ; then
+				echo "    Ejected Device Succesfully : \"/dev/${d}\""
+			fi
+		else
+			((num_device_eject_error++)) 
+			if [ $quite_mode_enabled == 0 ] ; then
+				echo "    ERROR! : Unable to Eject Device : \"/dev/${d}\""
+			fi
+			exit_status=-76
+		fi
+	done
+
+	if [ $num_volume_unmount_error == 0 ] && [ ${num_device_eject_error} == 0 ] ; then
+		if [ $quite_mode_enabled == 0 ] ; then
+			# Report that the files are now locally availible
+			echo ""
+			echo "--------------------------------------------------------------------"
+			echo "    NOTICE : All source volumes unmounted succesfully."
+			echo "--------------------------------------------------------------------"
+			echo ""
+		fi
+		return 0
+	else
+		if [ $quite_mode_enabled == 0 ] ; then
+			# Report that the files are now locally availible
+			echo ""
+			echo "--------------------------------------------------------------------"
+			echo "    ERROR! : Some source volumes were not unmounted. Manually eject "
+			echo "             all media before physically disconecting from system."
+			echo "--------------------------------------------------------------------"
+			echo ""
+		fi
+		return 1
+	fi
+	
+}
+
+
+
 
 ########### LOGIC AND EXECUTION ###########
 
@@ -375,7 +464,9 @@ install_from_image=0
 install_from_http_url=0
 quite_mode_enabled=0
 hide_mode_enabled=0
+eject_mode_enabled=0
 copy_mode_enabled=0
+verbose_mode_enabled=0
 num_dmg_failed_to_mount=0
 local_directory=/tmp/installpkg_local
 local_directory_instance_template=${local_directory}/installpkg_instance_XXXXXXXXXX
@@ -390,16 +481,30 @@ wget_options=""
 num_installer_errors=0
 num_installed_packages_or_images=0
 absolute_path_installpkg="${0}"
+volumes_to_unmount=[]
+volumes_to_unmount_index=0
+num_volume_unmount_success=0
+num_volume_unmount_error=0
+devices_to_eject=[]
+devices_to_eject_index=0
+num_device_eject_success=0
+num_device_eject_error=0
+
+
+
+
 
 # parse any arguments
-while getopts ":iuqhc" option
+while getopts ":iuqhcev" option
 do
     case $option in
         i   ) ((opt_args_passed++));((install_from_image++));lcrco="${lcrco}i";;
 		u   ) ((opt_args_passed++));((install_from_http_url++));lcrco="${lcrco}u";;
         q   ) ((opt_args_passed++));((quite_mode_enabled++));lcrco="${lcrco}q";;
 		h	) ((opt_args_passed++));((hide_mode_enabled++));lcrco="${lcrco}h";;
+		v	) ((opt_args_passed++));((verbose_mode_enabled++));lcrco="${lcrco}v";;
 		c	) ((opt_args_passed++));((copy_mode_enabled++));;
+		e	) ((opt_args_passed++));((eject_mode_enabled++));;
         *   ) ;;   # DEFAULT : Do Nothing
     esac
 done
@@ -429,7 +534,11 @@ if [ $copy_mode_enabled == 1 ] ; then
 	#trap "{ sleep 0.5 ;rm -rf \"${local_directory_instance}\"; }" EXIT
 	
 	if [ $quite_mode_enabled == 0 ] ; then
-		local_copy_rsync_options="--archive --human-readable --quiet --progress"
+		if [ $verbose_mode_enabled != 0 ] ; then 
+			local_copy_rsync_options="--archive --human-readable --stats --progress --verbose"
+		else
+			local_copy_rsync_options="--archive --human-readable "
+		fi
 	else	
 		local_copy_rsync_options="--archive --quiet"
 	fi
@@ -445,6 +554,9 @@ if [ $copy_mode_enabled == 1 ] ; then
 				exit_status=-50
 				exit_now
 			fi
+			if [ ${eject_mode_enabled} != 0 ] ; then
+				add_item_to_volumes_to_unmount_index "${s}"
+			fi
 		else
 			((num_items_to_copy_locally_which_were_not_found++))
 			echo "    WARNING! : Unable to locate origional specified item : ${s}"
@@ -459,12 +571,15 @@ if [ $copy_mode_enabled == 1 ] ; then
 	# Report that the files are now locally availible
 	echo ""
 	echo "--------------------------------------------------------------------"
-	echo "    NOTICE! : Located files copied to local storage succesfully."
+	echo "    NOTICE : Installers copied to local storage succesfully."
 	echo "--------------------------------------------------------------------"
 	echo ""
 	
+	# eject volumes
+	eject_devices_and_unmount_volumes_from_indexs
+	
 	# Perform recursive install
-	sudo "${absolute_path_installpkg}" ${local_copy_recurssive_call_options} "${local_directory_instance}/"*
+	sudo "${absolute_path_installpkg}" -${local_copy_recurssive_call_options} "${local_directory_instance}/"*
 	exit_status=${?}
 	
 	if [ ${num_items_to_copy_locally_which_were_not_found} != 0 ] ; then
@@ -489,8 +604,8 @@ do
     
     item2add="$a"
     
+	
 	if [ $quite_mode_enabled == 0 ] ; then
-    	echo ""
     	echo ""
 	fi
 	
@@ -533,8 +648,23 @@ do
 	if [ $install_from_http_url != 0 ] ; then
 		rm -R "${item2add}"
 	fi
-
+	
+	# add to the list of volume names to be ejected
+	if [ ${eject_mode_enabled} != 0 ] ; then
+		add_item_to_volumes_to_unmount_index "${item2add}"
+	fi
+	
 done
+
+
+# eject volumes
+if [ ${eject_mode_enabled} != 0 ] ; then
+	if [ $quite_mode_enabled == 0 ] ; then
+		echo ""
+		echo ""
+	fi
+	eject_devices_and_unmount_volumes_from_indexs	
+fi
 
 
 if [ $quite_mode_enabled == 0 ] ; then
@@ -563,6 +693,16 @@ if [ $quite_mode_enabled == 0 ] ; then
 	if [ $num_installer_errors -gt 0 ] ; then
 		echo ""
 		echo "    WARNING : [${num_installer_errors}] packages or images failed installation."
+		echo ""
+	fi
+	if [ $num_volume_unmount_error -gt 0 ] || [ $num_device_eject_error -gt 0 ]  ; then
+		echo ""
+		if [ $num_volume_unmount_error -gt 0 ] ; then
+			echo "    WARNING : [${num_volume_unmount_error}] volumes failed to unmount (-e)."
+		fi
+		if [ $num_device_eject_error -gt 0 ] ; then
+			echo "    WARNING : [${num_device_eject_error}] devices failed to eject (-e)."
+		fi
 		echo ""
 	fi
 fi
