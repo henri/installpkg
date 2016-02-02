@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.4
+# Version 0.2.5
 
 function check_admin_rights {
 
@@ -37,6 +37,12 @@ function check_flags_are_valid {
 	if [ $copy_mode_enabled == 1 ] && [ $install_from_http_url == 1 ] ; then
         echo "ERROR! : The -c flag is not compatible with the -u flag."
         exit_status=-121
+        exit_now
+	fi	
+	
+	if [ $eject_mode_enabled == 1 ] && [ $install_from_http_url == 1 ] ; then
+        echo "ERROR! : The -e flag is not compatible with the -u flag."
+        exit_status=-120
         exit_now
 	fi	
 	
