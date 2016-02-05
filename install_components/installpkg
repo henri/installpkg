@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.5
+# Version 0.2.6
 
 function check_admin_rights {
 
@@ -412,25 +412,29 @@ function eject_devices_and_unmount_volumes_from_indexs {
 	if [ $quite_mode_enabled == 0 ] ; then
 		echo ""
 	fi
-	# eject related devices
-	eval devices_to_eject_unique=($(printf "%q\n" "${devices_to_eject[@]}" | sort -u))
-	for d in "${devices_to_eject_unique[@]}" ; do
-		sync
-		sleep 1
-		diskutil eject "${d}" 2> /dev/null > /dev/null
-		if [ $? == 0 ] ; then
-			((num_device_eject_success++))
-			if [ $quite_mode_enabled == 0 ] ; then
-				echo "    Ejected Device Succesfully : \"/dev/${d}\""
+
+	# check to see if there are any related devices to eject
+	if [ ${devices_to_eject_index} -gt 0 ] ; then 
+		# eject related devices
+		eval devices_to_eject_unique=($(printf "%q\n" "${devices_to_eject[@]}" | sort -u))
+		for d in "${devices_to_eject_unique[@]}" ; do
+			sync
+			sleep 1
+			diskutil eject "${d}" 2> /dev/null > /dev/null
+			if [ $? == 0 ] ; then
+				((num_device_eject_success++))
+				if [ $quite_mode_enabled == 0 ] ; then
+					echo "    Ejected Device Succesfully : \"/dev/${d}\""
+				fi
+			else
+				((num_device_eject_error++)) 
+				if [ $quite_mode_enabled == 0 ] ; then
+					echo "    ERROR! : Unable to Eject Device : \"/dev/${d}\""
+				fi
+				exit_status=-76
 			fi
-		else
-			((num_device_eject_error++)) 
-			if [ $quite_mode_enabled == 0 ] ; then
-				echo "    ERROR! : Unable to Eject Device : \"/dev/${d}\""
-			fi
-			exit_status=-76
-		fi
-	done
+		done
+	fi
 
 	if [ $num_volume_unmount_error == 0 ] && [ ${num_device_eject_error} == 0 ] ; then
 		if [ $quite_mode_enabled == 0 ] ; then
