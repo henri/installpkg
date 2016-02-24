@@ -5,7 +5,7 @@
 Download the latest version (a compiled package installer) via the following URL : 
 http://www.lucid.systems/download/installpkg
 
-InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the GNU GPL licence.
+InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the [GNU GPL licence][8].
 
 OS 10.11 (El Capitan) rootless note. Version 0.2.0 of installpkg is the first version which is compatible with 10.11 systems which have rootless mode enabled. 
   * [Additional details regrding rootless mode on Mac OS 10.11][6]
@@ -27,6 +27,7 @@ Support for the -u "install from URL" flag is provided by wget. If you do not ha
  * [rudix (pre-built wget binary with install package for OS X)][3] (installation path : /usr/local/bin/wget)
  * [homebrew][2]
  * [macports][1]
+ * [pkgsrc][7]
 
 
 Comments and suggestions regarding the InstallPKG project are very welcome. Also, Once installed (along with wget), you can use installpkg to update installpkg with the following command : 
@@ -40,4 +41,7 @@ Comments and suggestions regarding the InstallPKG project are very welcome. Also
   [4]: https://github.com/unixorn/luggage
   [5]: http://www.lucid.systems/download/installpkg
   [6]: https://georgegarside.com/blog/osx/package-incompatible-installer/
+  [7]: https://pkgsrc.joyent.com/install-on-osx/
+  [8]: https://www.gnu.org/copyleft/gpl-3.0.html
+  
   
