@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.6
+# Version 0.2.7
 
 function check_admin_rights {
 
@@ -386,78 +386,93 @@ function eject_devices_and_unmount_volumes_from_indexs {
 	
 	# lets just find the unique volumes to eject
 	eval volumes_to_unmount_unique=($(printf "%q\n" "${volumes_to_unmount[@]}" | sort -u))
-	for v in "${volumes_to_unmount_unique[@]}" ; do 
-		sync
-		diskutil_unmount_result=`diskutil unmount "/Volumes/${v}" 2> /dev/null`
-		if [ $? == 0 ] ; then
-			((num_volume_unmount_success++))
-			device_of_unmounted_volume=`echo "${diskutil_unmount_result}" | awk -F " on " '{print $2}' | awk '{print $1}'`
-			if [ "${device_of_unmounted_volume}" != "" ] ; then
-				devices_to_eject[${devices_to_eject_index}]="${device_of_unmounted_volume}"
-				((devices_to_eject_index++))
-			fi
-			if [ $quite_mode_enabled == 0 ] ; then
-				if [ "${device_of_unmounted_volume}" != "" ] ; then related_device=" (/dev/${device_of_unmounted_volume})" ; fi
-				echo "    Unmounted Volume Succesfully : \"/Volumes/${v}\"${related_device}"
-			fi
-		else
-			((num_volume_unmount_error++)) 
-			if [ $quite_mode_enabled == 0 ] ; then
-				echo "    ERROR! : Unable to Unmount Volume : \"/Volumes/${v}\""
-			fi
-			exit_status=-77
-		fi
-	
-	done
-	if [ $quite_mode_enabled == 0 ] ; then
-		echo ""
-	fi
-
-	# check to see if there are any related devices to eject
-	if [ ${devices_to_eject_index} -gt 0 ] ; then 
-		# eject related devices
-		eval devices_to_eject_unique=($(printf "%q\n" "${devices_to_eject[@]}" | sort -u))
-		for d in "${devices_to_eject_unique[@]}" ; do
+	if [ ${#volumes_to_unmount_unique[@]} != 0 ] ; then
+		for v in "${volumes_to_unmount_unique[@]}" ; do 
 			sync
-			sleep 1
-			diskutil eject "${d}" 2> /dev/null > /dev/null
+			diskutil_unmount_result=`diskutil unmount "/Volumes/${v}" 2> /dev/null`
 			if [ $? == 0 ] ; then
-				((num_device_eject_success++))
+				((num_volume_unmount_success++))
+				device_of_unmounted_volume=`echo "${diskutil_unmount_result}" | awk -F " on " '{print $2}' | awk '{print $1}'`
+				if [ "${device_of_unmounted_volume}" != "" ] ; then
+					devices_to_eject[${devices_to_eject_index}]="${device_of_unmounted_volume}"
+					((devices_to_eject_index++))
+				fi
 				if [ $quite_mode_enabled == 0 ] ; then
-					echo "    Ejected Device Succesfully : \"/dev/${d}\""
+					if [ "${device_of_unmounted_volume}" != "" ] ; then related_device=" (/dev/${device_of_unmounted_volume})" ; fi
+					echo "    Unmounted Volume Succesfully : \"/Volumes/${v}\"${related_device}"
 				fi
 			else
-				((num_device_eject_error++)) 
+				((num_volume_unmount_error++)) 
 				if [ $quite_mode_enabled == 0 ] ; then
-					echo "    ERROR! : Unable to Eject Device : \"/dev/${d}\""
+					echo "    ERROR! : Unable to Unmount Volume : \"/Volumes/${v}\""
 				fi
-				exit_status=-76
+				exit_status=-77
 			fi
+	
 		done
-	fi
+		if [ $quite_mode_enabled == 0 ] ; then
+			echo ""
+		fi
 
-	if [ $num_volume_unmount_error == 0 ] && [ ${num_device_eject_error} == 0 ] ; then
-		if [ $quite_mode_enabled == 0 ] ; then
-			# Report that the files are now locally availible
-			echo ""
-			echo "--------------------------------------------------------------------"
-			echo "    NOTICE : All source volumes unmounted succesfully."
-			echo "--------------------------------------------------------------------"
-			echo ""
+		# check to see if there are any related devices to eject
+		if [ ${devices_to_eject_index} -gt 0 ] ; then 
+			# eject related devices
+			eval devices_to_eject_unique=($(printf "%q\n" "${devices_to_eject[@]}" | sort -u))
+			for d in "${devices_to_eject_unique[@]}" ; do
+				sync
+				sleep 1
+				diskutil eject "${d}" 2> /dev/null > /dev/null
+				if [ $? == 0 ] ; then
+					((num_device_eject_success++))
+					if [ $quite_mode_enabled == 0 ] ; then
+						echo "    Ejected Device Succesfully : \"/dev/${d}\""
+					fi
+				else
+					((num_device_eject_error++)) 
+					if [ $quite_mode_enabled == 0 ] ; then
+						echo "    ERROR! : Unable to Eject Device : \"/dev/${d}\""
+					fi
+					exit_status=-76
+				fi
+			done
 		fi
-		return 0
-	else
-		if [ $quite_mode_enabled == 0 ] ; then
-			# Report that the files are now locally availible
-			echo ""
-			echo "--------------------------------------------------------------------"
-			echo "    ERROR! : Some source volumes were not unmounted. Manually eject "
-			echo "             all media before physically disconecting from system."
-			echo "--------------------------------------------------------------------"
-			echo ""
+
+		if [ $num_volume_unmount_error == 0 ] && [ ${num_device_eject_error} == 0 ] ; then
+			if [ $quite_mode_enabled == 0 ] ; then
+				# Report that the files are now locally availible
+				echo ""
+				echo "--------------------------------------------------------------------"
+				echo "    NOTICE : All source volumes unmounted succesfully."
+				echo "--------------------------------------------------------------------"
+				echo ""
+			fi
+			return 0
+		else
+			if [ $quite_mode_enabled == 0 ] ; then
+				# Report that the files are now locally availible
+				echo ""
+				echo "--------------------------------------------------------------------"
+				echo "    ERROR! : Some source volumes were not unmounted. Manually eject "
+				echo "             all media before physically disconecting from system."
+				echo "--------------------------------------------------------------------"
+				echo ""
+			fi
+			return 1
 		fi
-		return 1
 	fi
+	
+	# No volumes detected for ejection
+	if [ $quite_mode_enabled == 0 ] ; then
+		# Report that no volumes were ejected
+		echo ""
+		echo "--------------------------------------------------------------------"
+		echo "    ERROR : No volumes found to eject!"
+		echo "--------------------------------------------------------------------"
+		echo ""
+	fi
+	no_volumes_found_to_eject_error=1
+	return 1
+	
 	
 }
 
@@ -499,7 +514,7 @@ devices_to_eject=[]
 devices_to_eject_index=0
 num_device_eject_success=0
 num_device_eject_error=0
-
+no_volumes_found_to_eject_error=0
 
 
 
@@ -586,7 +601,9 @@ if [ $copy_mode_enabled == 1 ] ; then
 	echo ""
 	
 	# eject volumes
-	eject_devices_and_unmount_volumes_from_indexs
+	if [ ${eject_mode_enabled} != 0 ] ; then
+		eject_devices_and_unmount_volumes_from_indexs
+	fi
 	
 	# Perform recursive install
 	sudo "${absolute_path_installpkg}" -${local_copy_recurssive_call_options} "${local_directory_instance}/"*
@@ -715,11 +732,20 @@ if [ $quite_mode_enabled == 0 ] ; then
 		fi
 		echo ""
 	fi
+	if [ ${no_volumes_found_to_eject_error} == 1 ] ; then
+		echo ""
+		echo "    WARNING : No devices were found to eject (-e)."
+		echo ""
+	fi
 fi
 
 # if [ $num_dmg_failed_to_mount -gt 0 ] ; then
 #   exit_status=-130
 # fi
+
+if [ ${no_volumes_found_to_eject_error} == 1 ] ; then
+	exit_status=-99
+fi
 
 if [ $num_installer_errors -gt 0 ] ; then
 	exit_status=-131
@@ -728,6 +754,7 @@ fi
 if [ $num_installed_packages_or_images == 0 ] ; then
 	exit_status=-130
 fi
+
 
 exit_now
 
