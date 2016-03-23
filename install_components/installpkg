@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.7
+# Version 0.2.8
 
 function check_admin_rights {
 
@@ -606,7 +606,7 @@ if [ $copy_mode_enabled == 1 ] ; then
 	fi
 	
 	# Perform recursive install
-	sudo "${absolute_path_installpkg}" -${local_copy_recurssive_call_options} "${local_directory_instance}/"*
+	sudo "${absolute_path_installpkg}" ${local_copy_recurssive_call_options} "${local_directory_instance}/"*
 	exit_status=${?}
 	
 	if [ ${num_items_to_copy_locally_which_were_not_found} != 0 ] ; then
