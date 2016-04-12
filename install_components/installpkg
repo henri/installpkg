@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.8
+# Version 0.2.9
 
 function check_admin_rights {
 
@@ -498,7 +498,7 @@ local_directory_instance_template=${local_directory}/installpkg_instance_XXXXXXX
 local_directory_instance=""
 local_copy_rsync_options=""
 local_copy_recurssive_call_options=""
-lcrco="" #local_copy_recurssive_call_options
+lcrco="-" #local_copy_recurssive_call_options
 download_directory=/tmp/installpkg_downloads
 mount_directory=/tmp/installpkg_mountpoints
 item2add=""
