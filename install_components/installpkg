@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.2.9
+# Version 0.3.0
 
 function check_admin_rights {
 
@@ -100,9 +100,9 @@ function exit_now {
 	# Something could be added to clean up the download directory and the mount point directory if this is important.
 
 	# Remove copy mode instance directory
-	if [ "${local_directory_instance}" != "" ] && [ $copy_mode_enabled != 0 ]; then
-		rm -Rf "${local_directory_instance}"
-	fi
+	#if [ "${local_directory_instance}" != "" ] && [ $copy_mode_enabled != 0 ]; then
+		#rm -Rf "${local_directory_instance}"
+	#fi
 	
     exit $exit_status
 
@@ -605,10 +605,32 @@ if [ $copy_mode_enabled == 1 ] ; then
 		eject_devices_and_unmount_volumes_from_indexs
 	fi
 	
-	# Perform recursive install
-	sudo "${absolute_path_installpkg}" ${local_copy_recurssive_call_options} "${local_directory_instance}/"*
-	exit_status=${?}
-	
+	# Perform recursive install once for each item to install - this was modified so greater feed back was possible and also to better handle odd path names
+	previous_working_dir="`pwd`"
+	errors_during_recursive_call_to_install=0
+	cd "${local_directory_instance}"
+	if [ $? != 0 ] ; then
+		echo "    ERROR! : Unable to switch to local instance directory."
+		exit_status=-122
+		exit_now
+	fi
+	for i
+	do 
+		sudo "${absolute_path_installpkg}" ${local_copy_recurssive_call_options} "${i}"
+		return_result_from_recursive_install_call=${?}
+		if [ ${return_result_from_recursive_install_call} != 0 ] ; then
+			echo ""
+			echo "    ERROR! : Unable to install   : \"${i}\""
+			echo "             Returned error code : ${return_result_from_recursive_install_call}"
+			echo ""
+			((errors_during_recursive_call_to_install++))
+			exit_status=-121
+		fi
+	done
+	if [ ${errors_during_recursive_call_to_install} != 0 ] ; then
+		exit_status=-121
+	fi
+	cd "${previous_working_dir}" # no error checking on this call  - maybe this call should be removed and errors redirected to /dev/nul/?
 	if [ ${num_items_to_copy_locally_which_were_not_found} != 0 ] ; then
 		echo ""
 		echo "    WARNING! : [${num_items_to_copy_locally_which_were_not_found}] items were not copied to local storage and as such these items were not installed."
@@ -619,8 +641,8 @@ if [ $copy_mode_enabled == 1 ] ; then
 			exit_status=-131
 		fi
 	fi
+	
 	# Remove any temporary local instance files
-	rm -rf \"${local_directory_instance}\"
 	exit_now
 fi
 
