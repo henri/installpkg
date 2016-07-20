@@ -12,18 +12,23 @@ OS 10.11 (El Capitan) rootless note. Version 0.2.0 of installpkg is the first ve
 
 Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
 
-
-Basic usage example to install all .pkg files found within a specific directory :
-
-    installpkg /path/to/directory/of/packages/*
-
-
 Full usage information and usage examples are available once installed by typing : 
 
     man installpkg
 
+Basic usage example to install all .pkg and .mpkg files found within a specific directory :
 
-Support for the -u "install from URL" flag is provided by wget. If you do not have wget installed on your system and you would rather not install the developer tools, then [download wget for OS X as a package][3]. It is possible to install wget in a number of ways. Just a few installation approaches relating to installation of wget on OS X are listed below :
+    installpkg /path/to/directory/of/packages/*
+
+Usage example which copies the "printers.dmg" from the volume called "usb", ejects the volume and then installs of all .mpkg and .pkg which are on the root level of the disk image volume :
+
+    installpkg -hice /Volumes/usb/printers.dmg
+
+Usage example which will download the printers.pkg from the specified URL and then commence with installation of that package.
+
+    installpkg -u installpkg http://example.com/installers/printers.pkg
+
+Support for the -u "install from URL" flag is provided by wget. If you do not have wget installed on your system and you would rather not install the developer tools, then [download wget for OS X as a package][3]. It is possible to install wget in a number of ways. A handful of installation approaches for wget on OS X are listed below :
  * [rudix (pre-built wget binary with install package for OS X)][3] (installation path : /usr/local/bin/wget)
  * [homebrew][2]
  * [macports][1]
