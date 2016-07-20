@@ -7,11 +7,8 @@ http://www.lucid.systems/download/installpkg
 
 InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the [GNU GPL licence][8].
 
-OS 10.11 (El Capitan) rootless note. Version 0.2.0 of installpkg is the first version which is compatible with 10.11 systems which have rootless mode enabled. 
-  * [Additional details regrding rootless mode on Mac OS 10.11][6]
-
-Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
-
+Usage Examples
+--------------
 Full usage information and usage examples are available once installed by typing : 
 
     man installpkg
@@ -20,21 +17,36 @@ Basic usage example to install all .pkg and .mpkg files found within a specific 
 
     installpkg /path/to/directory/of/packages/*
 
-Usage example which copies the "printers.dmg" from the volume called "usb", ejects the volume and then installs of all .mpkg and .pkg which are on the root level of the disk image volume :
+Copies the "printers.dmg" from the volume called "usb", ejects the volume and then installs of all .mpkg and .pkg which are on the root level of the disk image volume :
 
     installpkg -hice /Volumes/usb/printers.dmg
 
-Usage example which will download the printers.pkg from the specified URL and then commence with installation of that package.
+Download the printers.pkg from the specified URL and then commence with installation of that package.
 
     installpkg -u installpkg http://example.com/installers/printers.pkg
 
-Support for the -u "install from URL" flag is provided by wget. If you do not have wget installed on your system and you would rather not install the developer tools, then [download wget for OS X as a package][3]. It is possible to install wget in a number of ways. A handful of installation approaches for wget on OS X are listed below :
+Dependinceies
+-------------
+A typical Mac OS X installation will have the dependinces. The exception to this rule is wget which is required with the -u flag. Support for the -u "install from URL" flag is provided by wget. If you do not have wget installed on your system and you would rather not install the developer tools, then [download wget for OS X as a package][3]. It is possible to install wget in a number of ways. A handful of installation approaches for wget on OS X are listed below :
  * [rudix (pre-built wget binary with install package for OS X)][3] (installation path : /usr/local/bin/wget)
  * [homebrew][2]
  * [macports][1]
  * [pkgsrc][7]
 
 
+Rootless Mode Notes 
+-------------------
+OS 10.11 (El Capitan) rootless note. Version 0.2.0 of installpkg is the first version which is compatible with 10.11 systems which have rootless mode enabled. 
+  * [Additional details regrding rootless mode on Mac OS 10.11][6]
+
+
+Building InstallPKG with the source
+-----------------------------------
+Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
+
+
+Feedback
+-----------------------------------
 Comments and suggestions regarding the InstallPKG project are very welcome. Also, Once installed (along with wget), you can use installpkg to update installpkg with the following command : 
 
     installpkg -iuh http://lucid.systems/download/installpkg
