@@ -33,7 +33,7 @@ A typical Mac OS X installation will have the dependinces. The exception to this
  * [macports][1]
  * [pkgsrc][7]
 
-Upgrading
+Upgrade
 ---------
 Once installed (along with wget), you can use installpkg to update installpkg with the following command : 
 
