@@ -42,15 +42,16 @@ Once installed (along with wget), you can use installpkg to update installpkg wi
 If you would prefer to not install wget on your system then donwload the latest version manually and then run the InstallPKG again to update to the latest version.
 Should you be using InstallPKG within your own installer(s) then download the latest version and then replace your older InstallPKG.pkg with the new InstallPKG.pkg.
 
-Rootless Mode Notes 
+Rootless Mode 
 -------------------
 OS 10.11 (El Capitan) rootless note. Version 0.2.0 of installpkg is the first version which is compatible with 10.11 systems which have rootless mode enabled. 
   * [Additional details regrding rootless mode on Mac OS 10.11][6]
 
 
-Building InstallPKG with the source
+Building InstallPKG from source
 -----------------------------------
 Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
+
 
 Contributing
 ------------
