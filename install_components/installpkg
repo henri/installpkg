@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.3.1
+# Version 0.3.2
 
 function check_admin_rights {
 
@@ -538,6 +538,11 @@ num_argumnets=$#
 #   Decrements the argument pointer so it points to next argument.
 #   $1 now references the first non option item supplied on the command line
 #   if one exists.
+
+# If lcrco has no options added, then blank out the argument flag "-" was set by default.
+if [ "${lcrco}" == "-" ] ; then
+	lcrco=""
+fi
 
 # Check we are good to go
 check_arguments
