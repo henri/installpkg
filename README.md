@@ -39,7 +39,7 @@ Once installed (along with wget), you can use installpkg to update installpkg wi
 
     installpkg -iuh http://lucid.systems/download/installpkg
 
-If you would prefer to not install wget on your system then donwload the latest version manually and then run the InstallPKG again to update to the latest version.
+If you would prefer to not install wget on your system then download the latest version manually and then run the InstallPKG again to update to the latest version.
 Should you be using InstallPKG within your own installer(s) then download the latest version and then replace your older InstallPKG.pkg with the new InstallPKG.pkg.
 
 Rootless Mode 
