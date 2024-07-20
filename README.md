@@ -53,6 +53,11 @@ Building InstallPKG from source
 Use this GitHub project to build (requires [luggage][4]) the OS X package installer for InstallPKG or [download][5] the .dmg file which is also available from github. Pull requests to add useful features or bug fixes are welcome.
 
 
+Additional Featutes : Not Yet Implimented
+------------------------------------------------
+  - Checksumming (prior to installation)
+  - Signature verification (beyond what is built into Apples pkg format)
+
 Contributing
 ------------
 Comments and suggestions regarding the InstallPKG project are very welcome. 
