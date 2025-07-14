@@ -7,8 +7,7 @@ http://www.lucid.systems/download/installpkg
 
 InstallPKG is a wrapper to the 'installer' tool on Mac OS X systems. The functionality is focused on allowing you to quickly and easily install multiple packages to the current boot drive.  InstallPKG is released under the [GNU GPL licence][8].
 
-### ⚠️ macOS Sequoia (15) Note
-InstallPKG continues to work on macOS Sequoia. However, you will need to use version 0.3.3 or later
+
 Usage Examples
 --------------
 Full usage information and usage examples are available once installed by typing : 
