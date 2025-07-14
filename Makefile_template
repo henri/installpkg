@@ -37,7 +37,7 @@ IFPkgBuildDate=${BUILD_DATE}
 IFPkgFlagInstalledSize=102400
 
 PAYLOAD=\
-	pack-script-postflight \
+	pack-script-postinstall \
 	pack-usr-local-share-man-man1 \
 	pack-usr-local-bin
 

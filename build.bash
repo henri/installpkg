@@ -130,6 +130,10 @@ fi
 
 # make the package (using the luggage)
 # -------------------------
+
+# make pkg-dist - this may be required for modern operating systems
+# for now we keep using 'make pkg' until it breaks
+
 make pkg
 if [ $? != 0 ] ; then
     echo ""
