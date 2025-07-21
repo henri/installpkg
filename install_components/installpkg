@@ -12,7 +12,7 @@
 # Project information and full source code repository : 
 # http://www.lucid.technology/tools/installpkg
 
-# Version 0.3.2
+# Version 0.3.3
 
 function check_admin_rights {
 
